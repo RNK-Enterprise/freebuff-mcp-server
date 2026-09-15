@@ -10,8 +10,16 @@ name: Publish to npm
 #   2. A repository secret NPM_TOKEN (npm automation/granular token), used as
 #      a fallback when no trusted publisher is configured.
 #
+# Two publish routes:
+#   - direct: npm publish (default, used for the very first release)
+#   - staged: npm stage publish, which parks the version in npm's staging area
+#     for a maintainer to approve with 2FA before it goes public. Selected by
+#     the `staging` workflow_dispatch input. A staged publish cannot bootstrap
+#     a brand-new package name; see docs/publishing.md.
+#
 # Node 24 is used because trusted publishing requires npm CLI >= 11.5.1 and
-# Node >= 22.14; Node 22's bundled npm is too old.
+# staged publishing requires >= 11.15.0, while Node >= 22.14 is required by
+# both. Node 24.21 ships npm 11.19.0; Node 22 ships 10.9.8, which is too old.
 #
 # The release tag must match the package version (v0.3.0 or 0.3.0).
 
@@ -19,6 +27,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      staging:
+        description: 'Submit to the npm staging area for 2FA approval instead of publishing directly'
+        type: boolean
+        default: false
 
 jobs:
   publish:
@@ -72,6 +85,33 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish
-        run: npm publish --provenance --access public
+        run: |
+          if [ "${{ inputs.staging }}" = "true" ]; then
+            required="11.15.0"
+            have="$(npm --version)"
+            if [ "$(printf '%s\n%s\n' "$required" "$have" | sort -V | head -1)" != "$required" ]; then
+              echo "::error::npm ${have} is too old for staged publishing (needs >= ${required}). The job runs Node 24 (npm 11.19+); check the setup-node version."
+              exit 1
+            fi
+            version="$(node -p "require('./package.json').version")"
+            echo "Staging freebuff-mcp-server@${version} for maintainer approval"
+            npm stage publish
+            {
+              echo "### Staged for approval"
+              echo ""
+              echo "\`freebuff-mcp-server@${version}\` is in npm's staging area (npm ${have}). Approve it with 2FA:"
+              echo ""
+              echo '```bash'
+              echo "npm stage list                 # find the stage-id"
+              echo "npm stage view <stage-id>      # inspect metadata"
+              echo "npm stage download <stage-id>  # fetch the tarball"
+              echo "npm stage approve <stage-id>   # publish (2FA prompt)"
+              echo '```'
+              echo ""
+              echo "Or approve it at npmjs.com → Packages → Staged Packages."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            npm publish --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
