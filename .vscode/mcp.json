@@ -1,0 +1,20 @@
+{
+  "servers": {
+    "freebuff": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "freebuff-mcp-server"],
+      "env": {
+        "CODEBUFF_API_KEY": "${input:codebuffApiKey}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "codebuffApiKey",
+      "type": "promptString",
+      "description": "Codebuff API key (get one at https://www.codebuff.com/api-keys — same account as Freebuff)",
+      "password": true
+    }
+  ]
+}
