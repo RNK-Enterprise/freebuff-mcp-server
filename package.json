@@ -1,6 +1,6 @@
 {
   "name": "freebuff-mcp-server",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "MCP server that lets any MCP client (VS Code, Copilot Chat, etc.) drive the Freebuff coding agent (@codebuff/sdk) — with persisted sessions, transcripts, and a safe read-only default agent.",
   "type": "module",
   "bin": {
