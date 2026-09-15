@@ -707,7 +707,7 @@ async function runAgent(
 async function main() {
   const server = new McpServer({
     name: 'freebuff-mcp',
-    version: '0.3.0',
+    version: '0.3.1',
   })
 
   // ------------------------------ freebuff_run ------------------------------
