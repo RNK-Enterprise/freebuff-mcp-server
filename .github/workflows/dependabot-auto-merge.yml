@@ -1,15 +1,18 @@
 name: Dependabot auto-merge
 
-# Auto-merges Dependabot PRs that only contain minor or patch npm updates
-# (including the grouped minor+patch npm PR), once all required CI checks pass.
+# Enables auto-merge (squash) on Dependabot PRs that contain only minor or
+# patch npm updates: single bumps and the grouped npm-minor-and-patch PR.
+# GitHub then merges the PR automatically once the required CI checks pass.
+#
+# No approving review is created — branch protection requires no reviews, and
+# "GitHub Actions is not permitted to approve pull requests" is the default.
 #
 # Deliberately NOT covered:
 #   - major npm bumps (e.g. zod 3 -> 4) — merged manually after review
-#   - github-actions ecosystem bumps (grouped actions majors arrive as
-#     semver-major) — merged manually after review
+#   - github-actions ecosystem bumps — merged manually after review
 #
-# Requires repo settings: "Allow Dependabot to auto-merge" (allow_auto_merge)
-# and branch protection on main requiring the two CI checks.
+# Requires repo settings: "Allow auto-merge" and branch protection on main
+# requiring the CI checks.
 
 on: pull_request
 
@@ -28,25 +31,14 @@ jobs:
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
 
-      - name: Approve minor/patch npm updates
+      - name: Enable auto-merge (squash) for minor/patch npm updates
+        # The grouped npm-minor-and-patch PR is minor/patch-only by
+        # construction (majors are excluded by the group's update-types), so
+        # the group name is a safe additional signal.
         if: >-
           contains(github.head_ref, 'github_actions') == false &&
           (steps.meta.outputs.update-type == 'version-update:semver-minor' ||
-           steps.meta.outputs.update-type == 'version-update:semver-patch') &&
-          (steps.meta.outputs.group == '' ||
-           contains(steps.meta.outputs.group, 'minor'))
-        run: |
-          gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge (squash)
-        if: >-
-          contains(github.head_ref, 'github_actions') == false &&
-          (steps.meta.outputs.update-type == 'version-update:semver-minor' ||
-           steps.meta.outputs.update-type == 'version-update:semver-patch') &&
-          (steps.meta.outputs.group == '' ||
+           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
            contains(steps.meta.outputs.group, 'minor'))
         run: |
           gh pr merge --auto --squash "$PR_URL"
