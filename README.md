@@ -123,13 +123,22 @@ For any other MCP client, the launch command is the same:
 
 Publishing is automated from GitHub releases:
 
-1. Add `NPM_TOKEN` (an npm automation or granular token) as a repository secret
+1. Authenticate publishing — either works, and npm tries OIDC first:
+   - **npm trusted publishing (preferred, no secret):** on npmjs.com add a
+     trusted publisher for this repo (`publish.yml` workflow) under the
+     package's Settings → Trusted publishing. Requires npm CLI ≥ 11.5.1 and
+     Node ≥ 22.14, which the workflow provides by running Node 24.
+   - **`NPM_TOKEN` fallback:** add an npm automation/granular token as a
+     repository secret (needed for the very first publish, before the package
+     exists on npm and a trusted publisher can be configured)
 2. Bump `package.json` version, commit, and tag it
 3. Create a GitHub release with tag `v<version>` (e.g. `v0.3.1`)
 
 The `publish.yml` workflow then typechecks, builds, runs the protocol-only
-smoke test, verifies the tag matches the package version, and runs
-`npm publish --provenance --access public`.
+smoke test, verifies the tag matches the package version, reports which
+credential path is in use, and runs `npm publish --provenance --access public`.
+Re-running a stuck publish does not need a new release: dispatch the workflow
+against the release tag (`gh workflow run publish.yml --ref v<version>`).
 
 Manual publish still works: `npm publish` (prepublishOnly re-runs typecheck +
 build). The tarball contains only `dist/` + `README.md` (~12 kB packed).
