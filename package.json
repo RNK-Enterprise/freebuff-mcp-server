@@ -24,6 +24,10 @@
     "@types/node": "^26.5.1",
     "typescript": "^7.0.2"
   },
+  "overrides": {
+    "undici": "6.28.1",
+    "@ai-sdk/provider-utils": "3.0.37"
+  },
   "files": [
     "dist",
     "README.md"
