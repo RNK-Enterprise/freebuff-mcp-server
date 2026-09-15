@@ -170,3 +170,6 @@ stdout is reserved for the MCP protocol; all diagnostics go to stderr.
 - Runs require a Codebuff API key with SDK access (see Authentication).
 - Transcripts omit `system` messages and reasoning parts.
 - Token estimates are character-based upper bounds, not exact counts.
+- `undici` and `@ai-sdk/provider-utils` are pinned to patched versions via npm
+  `overrides` in `package.json` (transitive deps of `@codebuff/sdk`); revisit
+  these pins when the SDK ships a dependency refresh.
