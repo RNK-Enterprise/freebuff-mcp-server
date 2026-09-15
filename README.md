@@ -168,6 +168,18 @@ credential path is in use, and runs `npm publish --provenance --access public`.
 Re-running a stuck publish does not need a new release: dispatch the workflow
 against the release tag (`gh workflow run publish.yml --ref v<version>`).
 
+Once the package exists on npm the recommended route is **staged publishing**,
+which parks the version in a staging area until a maintainer approves it with
+2FA, so no long-lived token is needed at all:
+
+```bash
+gh workflow run publish.yml --ref v<version> -f staging=true
+npm stage list && npm stage approve <stage-id>
+```
+
+See [docs/publishing.md](docs/publishing.md) for the full evaluation, the
+requirements, and the rollout order.
+
 Manual publish still works: `npm publish` (prepublishOnly re-runs typecheck +
 build). The tarball contains only `dist/` + `README.md` (~12 kB packed).
 
