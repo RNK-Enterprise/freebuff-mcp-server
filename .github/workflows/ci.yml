@@ -31,6 +31,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies
+        # Fails on any runtime-scope vulnerability — the undici /
+        # @ai-sdk/provider-utils class of regression that reached us through
+        # @codebuff/sdk. Dev-only advisories do not fail the build; raise the
+        # bar with AUDIT_MIN_SEVERITY=high.
+        run: npm run audit:runtime
+
       - name: Typecheck
         run: npm run typecheck
 

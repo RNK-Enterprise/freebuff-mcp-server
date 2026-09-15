@@ -137,7 +137,8 @@ build). The tarball contains only `dist/` + `README.md` (~12 kB packed).
 ## CI
 
 `.github/workflows/ci.yml` runs on every push/PR touching `src/`, `test/`
-(Node 20 + 22): typecheck → build → `npm test` with `SMOKE_SKIP_NETWORK=1`.
+(Node 20 + 22): `npm run audit:runtime` (fails on runtime-scope advisories)
+→ typecheck → build → `npm test` with `SMOKE_SKIP_NETWORK=1`.
 That mode exercises the full MCP protocol surface (handshake, tool schemas,
 resource listing/reads, delete and resume error paths, persistence across a
 restart) without agent runs, since CI has no credentials. The full test with
@@ -147,8 +148,9 @@ real agent runs still works locally: `npm test`.
 
 ```bash
 npm install
-npm run typecheck   # tsc --noEmit
-npm run build       # emit dist/index.js
+npm run typecheck       # tsc --noEmit
+npm run build           # emit dist/index.js
+npm run audit:runtime   # fail on runtime-scope advisories (AUDIT_MIN_SEVERITY=high to raise the bar)
 node test/smoke.js  # full end-to-end test (see below)
                     # optional args: [agentId] [costMode]
 ```
