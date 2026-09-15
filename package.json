@@ -10,7 +10,8 @@
     "build": "tsc",
     "test": "node test/smoke.js",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit:runtime": "node scripts/audit-runtime.mjs"
   },
   "engines": {
     "node": ">=18"
