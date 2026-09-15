@@ -34,15 +34,16 @@ jobs:
       - name: Enable auto-merge (squash) for minor/patch npm updates
         # The grouped npm-minor-and-patch PR is minor/patch-only by
         # construction (majors are excluded by the group's update-types), so
-        # the group name is a safe additional signal.
+        # the group name is a safe additional signal. The fetch-metadata
+        # output is named `dependency-group`.
         if: >-
           contains(github.head_ref, 'github_actions') == false &&
           (steps.meta.outputs.update-type == 'version-update:semver-minor' ||
            steps.meta.outputs.update-type == 'version-update:semver-patch' ||
-           contains(steps.meta.outputs.group, 'minor'))
+           steps.meta.outputs.dependency-group == 'npm-minor-and-patch')
         run: |
           gh pr merge --auto --squash "$PR_URL"
-          echo "auto-merge enabled for: $PR_URL (update-type=${{ steps.meta.outputs.update-type }}, group=${{ steps.meta.outputs.group }})"
+          echo "auto-merge enabled for: $PR_URL (update-type=${{ steps.meta.outputs.update-type }}, dependency-group=${{ steps.meta.outputs.dependency-group }})"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
