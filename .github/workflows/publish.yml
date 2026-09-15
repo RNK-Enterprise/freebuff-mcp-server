@@ -1,27 +1,38 @@
 name: Publish to npm
 
-# Publishes freebuff-mcp-server when a GitHub release is published.
-# Requires a repository secret NPM_TOKEN (an npm automation/granular token).
+# Publishes freebuff-mcp-server when a GitHub release is published, and can be
+# re-run manually (workflow_dispatch) against the tag of an existing release.
+#
+# Authentication, in npm's detection order (npm tries OIDC first):
+#   1. npm trusted publishing (OIDC) — no secret required. Once a trusted
+#      publisher is configured for this repo on npmjs.com, publishes are
+#      tokenless and provenance is generated automatically.
+#   2. A repository secret NPM_TOKEN (npm automation/granular token), used as
+#      a fallback when no trusted publisher is configured.
+#
+# Node 24 is used because trusted publishing requires npm CLI >= 11.5.1 and
+# Node >= 22.14; Node 22's bundled npm is too old.
+#
 # The release tag must match the package version (v0.3.0 or 0.3.0).
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # for npm provenance
+      id-token: write # OIDC: npm trusted publishing + provenance
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
+          node-version: 24
+          package-manager-cache: false # never cache on release builds
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
@@ -44,9 +55,21 @@ jobs:
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           echo "package version: ${PKG_VERSION}, release tag: ${GITHUB_REF_NAME} (${TAG_VERSION})"
           if [ "${PKG_VERSION}" != "${TAG_VERSION}" ]; then
-            echo "::error::package.json version (${PKG_VERSION}) does not match release tag (${GITHUB_REF_NAME}). Bump package.json and re-release."
+            echo "::error::package.json version (${PKG_VERSION}) does not match release tag (${GITHUB_REF_NAME}). Bump package.json and re-release. (A manual run must target the release tag, e.g. --ref v${PKG_VERSION}.)"
             exit 1
           fi
+
+      - name: Report publish credentials
+        run: |
+          echo "npm: $(npm --version), node: $(node --version)"
+          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "Using the NPM_TOKEN repository secret."
+          else
+            echo "No NPM_TOKEN secret set — relying on npm trusted publishing (OIDC)."
+            echo "This requires a trusted publisher configured for ${GITHUB_REPOSITORY} (workflow publish.yml) on npmjs.com."
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish
         run: npm publish --provenance --access public
