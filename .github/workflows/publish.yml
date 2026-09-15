@@ -1,0 +1,57 @@
+name: Publish to npm
+
+# Publishes freebuff-mcp-server when a GitHub release is published.
+# Requires a repository secret NPM_TOKEN (an npm automation/granular token).
+# The release tag must match the package version (v0.3.0 or 0.3.0).
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # for npm provenance
+    defaults:
+      run:
+        working-directory: freebuff-mcp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: freebuff-mcp/package-lock.json
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck & build
+        run: |
+          npm run typecheck
+          npm run build
+
+      - name: Smoke test (protocol-only)
+        run: npm test
+        env:
+          SMOKE_SKIP_NETWORK: '1'
+          FREEBUFF_MCP_DIR: ${{ runner.temp }}/freebuff-mcp-sessions
+
+      - name: Verify tag matches package version
+        run: |
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "package version: ${PKG_VERSION}, release tag: ${GITHUB_REF_NAME} (${TAG_VERSION})"
+          if [ "${PKG_VERSION}" != "${TAG_VERSION}" ]; then
+            echo "::error::package.json version (${PKG_VERSION}) does not match release tag (${GITHUB_REF_NAME}). Bump package.json and re-release."
+            exit 1
+          fi
+
+      - name: Publish
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

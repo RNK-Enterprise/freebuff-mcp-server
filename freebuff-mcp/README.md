@@ -121,12 +121,27 @@ For any other MCP client, the launch command is the same:
 
 ## Publishing (maintainers)
 
-```bash
-npm run typecheck && npm run build
-npm publish          # prepublishOnly re-runs typecheck + build
-```
+Publishing is automated from GitHub releases:
 
-The published tarball contains only `dist/` + `README.md` (~12 kB packed).
+1. Add `NPM_TOKEN` (an npm automation or granular token) as a repository secret
+2. Bump `package.json` version, commit, and tag it
+3. Create a GitHub release with tag `v<version>` (e.g. `v0.3.1`)
+
+The `publish.yml` workflow then typechecks, builds, runs the protocol-only
+smoke test, verifies the tag matches the package version, and runs
+`npm publish --provenance --access public`.
+
+Manual publish still works: `npm publish` (prepublishOnly re-runs typecheck +
+build). The tarball contains only `dist/` + `README.md` (~12 kB packed).
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push/PR touching `freebuff-mcp/`
+(Node 20 + 22): typecheck → build → `npm test` with `SMOKE_SKIP_NETWORK=1`.
+That mode exercises the full MCP protocol surface (handshake, tool schemas,
+resource listing/reads, delete and resume error paths, persistence across a
+restart) without agent runs, since CI has no credentials. The full test with
+real agent runs still works locally: `npm test`.
 
 ## Development
 

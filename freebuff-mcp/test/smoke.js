@@ -14,6 +14,9 @@
  *      (refuses oversized sessions, resumes with force_resume).
  *
  * Usage: node test/smoke.js [agentId] [costMode]
+ *
+ * Set SMOKE_SKIP_NETWORK=1 to run protocol-level checks only (no agent runs,
+ * no stored credentials needed) — used by CI.
  */
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
@@ -113,9 +116,89 @@ async function initialize(client) {
   client.notify('notifications/initialized', {})
 }
 
+/**
+ * Protocol-level suite: no agent runs, no credentials required.
+ * Verifies handshake, tool/resource surface, and error paths that don't
+ * depend on reaching the Codebuff backend.
+ */
+async function runProtocolOnly() {
+  console.log('=== protocol-only mode (SMOKE_SKIP_NETWORK=1) ===')
+  const a = startServer()
+  await initialize(a)
+
+  const tools = await a.request('tools/list', {})
+  const names = tools.result.tools.map((t) => t.name)
+  assert(
+    [
+      'freebuff_run',
+      'freebuff_status',
+      'freebuff_stop',
+      'freebuff_delete',
+      'freebuff_sessions',
+    ].every((n) => names.includes(n)),
+    'tools/list returns all five tools',
+  )
+
+  // freebuff_status may succeed (if credentials exist) or fail gracefully —
+  // either way it must respond without crashing.
+  const status = await a.request('tools/call', {
+    name: 'freebuff_status',
+    arguments: {},
+  })
+  assert(
+    typeof textOf(status) === 'string' && textOf(status).length > 0,
+    'freebuff_status responds (graceful with or without credentials)',
+  )
+
+  const emptyList = await a.request('resources/list', {})
+  assert(
+    Array.isArray(emptyList.result.resources),
+    'resources/list responds on empty storage',
+  )
+
+  const delUnknown = await a.request('tools/call', {
+    name: 'freebuff_delete',
+    arguments: { session_id: 's_bogus' },
+  })
+  assert(
+    delUnknown.result.isError === true &&
+      textOf(delUnknown).includes('Unknown session_id'),
+    'freebuff_delete rejects unknown ids',
+  )
+
+  const bogusTranscript = await a.request('resources/read', {
+    uri: 'freebuff://sessions/s_bogus/transcript',
+  })
+  assert(
+    Boolean(bogusTranscript.error),
+    'transcript read for unknown session errors cleanly',
+  )
+
+  const bogusResume = await a.request('tools/call', {
+    name: 'freebuff_run',
+    arguments: { prompt: 'x', session_id: 's_bogus', timeout_seconds: 10 },
+  })
+  assert(
+    textOf(bogusResume).includes('Unknown session_id'),
+    'resuming an unknown session is rejected before any agent call',
+  )
+
+  a.stop()
+  fs.rmSync(storageDir, { recursive: true, force: true })
+  console.log('ALL SMOKE TESTS PASSED (protocol-only)')
+  process.exit(0)
+}
+
 async function main() {
   const agentId = process.argv[2]
   const costMode = process.argv[3]
+  const skipNetwork = process.env.SMOKE_SKIP_NETWORK === '1'
+
+  if (skipNetwork) {
+    await runProtocolOnly()
+    return
+  }
+
   const baseRunArgs = {
     prompt:
       'Reply with a single short sentence and do nothing else. Do not read or modify any files.',
