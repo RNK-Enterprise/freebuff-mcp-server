@@ -1,0 +1,124 @@
+{
+  "serverInfo": {
+    "name": "freebuff-mcp"
+  },
+  "tools": [
+    {
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "session_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "name": "freebuff_delete"
+    },
+    {
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "cost_mode": {
+            "enum": [
+              "free",
+              "normal",
+              "max",
+              "experimental",
+              "ask"
+            ],
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "force_resume": {
+            "type": "boolean"
+          },
+          "max_steps": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "prompt": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "maximum": 1200,
+            "minimum": 10,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "name": "freebuff_run"
+    },
+    {
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "freebuff_sessions"
+    },
+    {
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "freebuff_status"
+    },
+    {
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "freebuff_stop"
+    }
+  ],
+  "resources": [
+    {
+      "mimeType": "application/json",
+      "name": "sessions-index",
+      "uri": "freebuff://sessions"
+    }
+  ],
+  "resourceTemplates": [
+    {
+      "mimeType": "text/markdown",
+      "name": "session-transcript",
+      "uriTemplate": "freebuff://sessions/{id}/transcript"
+    }
+  ]
+}

@@ -49,3 +49,10 @@ jobs:
         env:
           SMOKE_SKIP_NETWORK: '1'
           FREEBUFF_MCP_DIR: ${{ runner.temp }}/freebuff-mcp-sessions
+
+      - name: Contract test (tool names, input schemas, resource URIs)
+        # Fails if the client-facing surface changes; see test/contract.js and
+        # update test/contract.snapshot.json deliberately when it should.
+        run: npm run test:contract
+        env:
+          FREEBUFF_MCP_DIR: ${{ runner.temp }}/freebuff-mcp-contract

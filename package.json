@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc",
     "test": "node test/smoke.js",
+    "test:contract": "node test/contract.js",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "audit:runtime": "node scripts/audit-runtime.mjs"
