@@ -1,5 +1,8 @@
 # freebuff-mcp-server
 
+[![npm version](https://img.shields.io/npm/v/freebuff-mcp-server.svg)](https://www.npmjs.com/package/freebuff-mcp-server)
+[![CI](https://github.com/RNK-Enterprise/freebuff-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/RNK-Enterprise/freebuff-mcp-server/actions/workflows/ci.yml)
+
 Run the **Freebuff** coding agent from inside **VS Code** (or any MCP client)
 via the Model Context Protocol. Delegate coding tasks to the agent without
 leaving the editor.
@@ -79,6 +82,31 @@ Or install globally:
 npm install -g freebuff-mcp-server
 freebuff-mcp-server
 ```
+
+[Latest release](https://github.com/RNK-Enterprise/freebuff-mcp-server/releases/latest)
+· [all releases](https://github.com/RNK-Enterprise/freebuff-mcp-server/releases)
+· [release notes](https://github.com/RNK-Enterprise/freebuff-mcp-server/tree/main/.github/releases)
+
+### Verifying the published package
+
+Releases are published from GitHub Actions, so the registry records a
+**provenance attestation** tying the tarball to this repository, the commit it
+was built from, and the workflow run that published it. To check an install:
+
+```bash
+npm audit signatures   # verifies registry signatures and provenance
+```
+
+The raw attestation bundle for a version is served by the registry:
+
+```
+https://registry.npmjs.org/-/npm/v1/attestations/freebuff-mcp-server@<version>
+```
+
+For example:
+[`0.3.1`](https://registry.npmjs.org/-/npm/v1/attestations/freebuff-mcp-server@0.3.1).
+npm also surfaces provenance on the
+[package page](https://www.npmjs.com/package/freebuff-mcp-server).
 
 ### Authentication
 
