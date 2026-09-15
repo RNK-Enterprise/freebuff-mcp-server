@@ -13,6 +13,7 @@ updates:
       prefix: chore
 
   # Keep npm dependencies up to date (majors arrive as individual PRs).
+  # Minor/patch npm PRs auto-merge via dependabot-auto-merge.yml once CI passes.
   - package-ecosystem: npm
     directory: /
     schedule:
