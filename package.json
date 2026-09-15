@@ -1,7 +1,7 @@
 {
   "name": "freebuff-mcp-server",
   "version": "0.3.0",
-  "description": "MCP server that lets any MCP client (VS Code, Copilot Chat, etc.) drive the Freebuff coding agent (@codebuff/sdk) \u2014 with persisted sessions, transcripts, and a safe read-only default agent.",
+  "description": "MCP server that lets any MCP client (VS Code, Copilot Chat, etc.) drive the Freebuff coding agent (@codebuff/sdk) — with persisted sessions, transcripts, and a safe read-only default agent.",
   "type": "module",
   "bin": {
     "freebuff-mcp-server": "dist/index.js"
@@ -18,7 +18,7 @@
   "dependencies": {
     "@codebuff/sdk": "^0.10.7",
     "@modelcontextprotocol/sdk": "^1.19.1",
-    "zod": "^4.6.2"
+    "zod": "^4.6.0"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",

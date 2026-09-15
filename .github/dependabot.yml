@@ -14,6 +14,8 @@ updates:
 
   # Keep npm dependencies up to date (majors arrive as individual PRs).
   # Minor/patch npm PRs auto-merge via dependabot-auto-merge.yml once CI passes.
+  # Note: Dependabot's cooldown holds back freshly published versions, so bumps
+  # can lag a release by ~3 days.
   - package-ecosystem: npm
     directory: /
     schedule:
